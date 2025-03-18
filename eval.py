@@ -2,7 +2,7 @@ import train
 from models.model import CustomNet
 import torch
 from torch import nn
-from data.data import train_loader
+import wandb
 
 
 # Validation loop
@@ -28,6 +28,8 @@ def validate(model, val_loader, criterion):
 
     val_loss = val_loss / len(val_loader)
     val_accuracy = 100. * correct / total
+
+    wandb.log({"val_loss": val_loss, "val_accuracy": val_accuracy})
 
     print(f'Validation Loss: {val_loss:.6f} Acc: {val_accuracy:.2f}%')
     return val_accuracy
@@ -56,5 +58,11 @@ for epoch in range(1, num_epochs + 1):
     # Best validation accuracy
     best_acc = max(best_acc, val_accuracy)
 
+    # Salva il miglior modello
+    if val_accuracy > best_acc:
+        best_acc = val_accuracy
+        torch.save(model.state_dict(), "best_model.pth")
+        wandb.save("best_model.pth")
 
+wandb.finish()
 print(f'Best validation accuracy: {best_acc:.2f}%')
